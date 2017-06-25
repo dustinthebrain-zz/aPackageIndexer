@@ -43,10 +43,21 @@ int main(int argc , char *argv[])
     std::regex remove (R"(REMOVE\|[a-zA-Z0-9_.-]+\|)");
     std::regex query (R"(QUERY\|[a-zA-Z0-9_.-]+\|)");
     
-    //IO variables ..
+    //IO variables//
     char buffer[MAXMSG];
+    //tokanizer vars//
+    char * command;
+    char * package;
+    std:: string commandPackage;
+    char * dependencies = "Hello World";
     
-    //PackageTree object
+    //hashing vars//
+    std::hash<std::string> hasher;
+    unsigned long packetKey = 0;
+    unsigned long headPacketKey = 0;
+
+    
+    binary_tree btree;
     //initialise all client_socket[] to 0 so not checked
     for (int i = 0; i < max_clients; i++)
     {
@@ -144,7 +155,6 @@ int main(int argc , char *argv[])
             
             if (FD_ISSET( sd , &readfds))
             {
-                //Check if it was for closing , and also read the
                 //incoming message
                 if ((valread = read( sd , buffer, 1024)) == 0)
                 {
@@ -162,7 +172,28 @@ int main(int argc , char *argv[])
                     if (std::regex_match (buffer,index)){
                         //temp = buffer;
                         //tokenize command and the "head package"
+                        command = strtok(buffer,"|");
+                        package= strtok(NULL,"|");
+                        dependencies = strtok(NULL,",");
                         //tokenizer loop for dependencies
+                        while(dependencies != NULL){
+                            packetKey = hasher(dependencies);
+                            //if dependency does not exist yet
+                            //Index it
+                            if (btree.search(packetKey) == NULL){
+                                btree.insert(packetKey, std::string (dependencies), std::string(package), true);
+                            }
+                            //if it does alredy exist just send massage
+                            else
+                            dependencies = strtok(NULL,",");
+                        }
+                        packetKey = hasher(package);
+                        if (btree.search(packetKey) == NULL){
+                            btree.insert(packetKey, std:: string(package), std::string(package), false);
+                            send(sd, "OK\n", 3, 0);
+                        }
+                        //if it does alredy exist just send massage
+                        else
                         send(sd, "OK\n", 3, 0);
                         
                     }
