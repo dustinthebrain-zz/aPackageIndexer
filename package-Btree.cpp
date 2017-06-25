@@ -180,10 +180,6 @@ bool binary_tree::getDependencyFlag(unsigned long key_value){
 }
 
 std::string binary_tree::getHeadPack(unsigned long key_value){
-    if (search(key_value) == NULL)
-    {
-        throw 0;
-    }
     tree_node *tmp = search(root,key_value);
     return tmp->headPackage;
 }

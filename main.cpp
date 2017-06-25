@@ -195,6 +195,8 @@ int main(int argc , char *argv[])
                             packetKey = hasher(dependencies);
                             //if the dependency is not found in the tree, add it
                             if (btree.search(packetKey) == NULL){
+                                //insert the package name and its dependent package
+                                //in this case it is the same because the package is not dependent on anyhitng
                                 btree.insert(packetKey, std::string (dependencies), std::string(package), true);
                             }
                             //if it does, dont and and get the next one
@@ -205,6 +207,7 @@ int main(int argc , char *argv[])
                         //hash the dependent package to a key
                         packetKey = hasher(package);
                         if (btree.search(packetKey) == NULL){
+                            //insert the package and what is dependent on it
                             btree.insert(packetKey, std:: string(package), std::string(package), false);
                             send(sd, "OK\n", 3, 0);
                         }
@@ -239,12 +242,14 @@ int main(int argc , char *argv[])
                         command = strtok(buffer,"|");
                         package= strtok(NULL,"|");
                         packetKey = hasher(package);
+                        
+                        if (btree.search(packetKey) != NULL){
                         commandPackage = btree.getHeadPack(packetKey);
                         headPacketKey = hasher(commandPackage);
-                        
+                        }
                         //if the package exist and it is a dependency on some package
                         //and that dependent package still exist
-                        if (btree.search(packetKey) == NULL &&
+                        if (btree.search(packetKey) != NULL &&
                             btree.getDependencyFlag(packetKey)
                             && btree.search(headPacketKey) != NULL){
                             send(sd, "FAIL\n", 5, 0);
