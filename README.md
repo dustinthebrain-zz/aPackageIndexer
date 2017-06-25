@@ -50,7 +50,7 @@ and the program is compiled with c++11
 ## run
 `./PTREE`
 ## interface
-	telnet from as multiple terminals and send messages 
+	telnet from multiple terminals and send messages 
 `telnet 127.0.0.1 8080`
 
 ## test
