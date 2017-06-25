@@ -58,30 +58,33 @@ int main(int argc , char *argv[])
 
     
     binary_tree btree;
+    
+    
+    ////////////////////////////////////////////////////////
+    //
+    //
+    // begin setting up sockets
+    //
+    ////////////////////////////////////////////////////////
+    
     //initialise all client_socket[] to 0 so not checked
-    for (int i = 0; i < max_clients; i++)
-    {
+    for (int i = 0; i < max_clients; i++){
         client_socket[i] = 0;
     }
     
     //create a master socket
-    if( (master_socket = socket(AF_INET , SOCK_STREAM , 0)) == 0)
-    {
+    if( (master_socket = socket(AF_INET , SOCK_STREAM , 0)) == 0){
         perror("socket failed");
         exit(EXIT_FAILURE);
     }
     
-    
-    
     //bind the socket to localhost port 8888
-    if (bind(master_socket, (struct sockaddr *)&address, sizeof(address))<0)
-    {
+    if (bind(master_socket, (struct sockaddr *)&address, sizeof(address))<0){
         perror("bind failed");
         exit(EXIT_FAILURE);
     }
     //try to specify maximum of 3 pending connections for the master socket
-    if (listen(master_socket, 3) < 0)
-    {
+    if (listen(master_socket, 3) < 0){
         perror("listen");
         exit(EXIT_FAILURE);
     }
@@ -89,6 +92,13 @@ int main(int argc , char *argv[])
     //accept the incoming connection
     addrlen = sizeof(address);
     printf("Waiting for connections ...");
+    
+    ////////////////////////////////////////////////////////
+    //
+    //
+    // main loop, accept new sockets and listen for IO
+    //
+    ////////////////////////////////////////////////////////
     
     while(1)
     {
@@ -100,8 +110,7 @@ int main(int argc , char *argv[])
         max_sd = master_socket;
         
         //add child sockets to set
-        for (int i = 0 ; i < max_clients ; i++)
-        {
+        for (int i = 0 ; i < max_clients ; i++){
             //socket descriptor
             sd = client_socket[i];
             
@@ -114,32 +123,25 @@ int main(int argc , char *argv[])
                 max_sd = sd;
         }
         
-        //wait for an activity on one of the sockets , timeout is NULL ,
-        //so wait indefinitely
+        //wait for activity on a socket
         activity = select( max_sd + 1 , &readfds , NULL , NULL , NULL);
         
-        if ((activity < 0) && (errno!=EINTR))
-        {
+        if ((activity < 0) && (errno!=EINTR)){
             printf("select error");
         }
         
-        //If something happened on the master socket ,
-        //then its an incoming connection
-        if (FD_ISSET(master_socket, &readfds))
-        {
+        //If master socket is set
+        if (FD_ISSET(master_socket, &readfds)){
             if ((new_socket = accept(master_socket,
-                                     (struct sockaddr *)&address, (socklen_t*)&addrlen))<0)
-            {
+                                     (struct sockaddr *)&address, (socklen_t*)&addrlen))<0){
                 perror("accept");
                 exit(EXIT_FAILURE);
             }
             
             //add new socket to array of sockets
-            for (int i = 0; i < max_clients; i++)
-            {
+            for (int i = 0; i < max_clients; i++){
                 //if position is empty
-                if( client_socket[i] == 0 )
-                {
+                if( client_socket[i] == 0 ){
                     client_socket[i] = new_socket;
                     printf("Adding to list of sockets as %d\n" , i);
                     
@@ -148,45 +150,59 @@ int main(int argc , char *argv[])
             }
         }
         
-        //else its some IO operation on some other socket
-        for (int i = 0; i < max_clients; i++)
-        {
+        //else we have IO
+        for (int i = 0; i < max_clients; i++){
             sd = client_socket[i];
             
-            if (FD_ISSET( sd , &readfds))
-            {
-                //incoming message
-                if ((valread = read( sd , buffer, 1024)) == 0)
-                {
+            //if socet is active
+            if (FD_ISSET( sd , &readfds)){
+                //if EOF, close socket
+                if ((valread = read( sd , buffer, 1024)) == 0){
                     //Close the socket and mark as 0 in list for reuse
                     close( sd );
                     client_socket[i] = 0;
                 }
-                
                 //read the buffer
                 else
                 {
-                    //set the string terminating NULL byte on the end of message
+                    ////////////////////////////////////////////////////////
+                    //
+                    //
+                    // read and handle commands
+                    //
+                    ////////////////////////////////////////////////////////
+                    
+                    //set null byte at end of string
                     buffer[valread-2] = '\0';
-                    //If INDEX command we will tokanize and insert dependencies first then the head package
+                    
+                    ////////////////////////////////////////////////////////
+                    //
+                    //
+                    // INDEX
+                    //
+                    ////////////////////////////////////////////////////////
                     if (std::regex_match (buffer,index)){
-                        //temp = buffer;
-                        //tokenize command and the "head package"
+                        
+                        //Tokanize the command and first package
                         command = strtok(buffer,"|");
                         package= strtok(NULL,"|");
                         dependencies = strtok(NULL,",");
-                        //tokenizer loop for dependencies
+                        
+                        //if there are dependencies loop untill all are inserted
                         while(dependencies != NULL){
+                            
+                            //hash the dependency to a key
                             packetKey = hasher(dependencies);
-                            //if dependency does not exist yet
-                            //Index it
+                            //if the dependency is not found in the tree, add it
                             if (btree.search(packetKey) == NULL){
                                 btree.insert(packetKey, std::string (dependencies), std::string(package), true);
                             }
-                            //if it does alredy exist just send massage
+                            //if it does, dont and and get the next one
                             else
                             dependencies = strtok(NULL,",");
                         }
+                        
+                        //hash the dependent package to a key
                         packetKey = hasher(package);
                         if (btree.search(packetKey) == NULL){
                             btree.insert(packetKey, std:: string(package), std::string(package), false);
@@ -197,10 +213,29 @@ int main(int argc , char *argv[])
                         send(sd, "OK\n", 3, 0);
                         
                     }
-                    //If QUERY
+                    ////////////////////////////////////////////////////////
+                    //
+                    //
+                    // QUERY
+                    //
+                    ////////////////////////////////////////////////////////
                     else if (std::regex_match (buffer,query)){
+                        command = strtok(buffer,"|");
+                        package= strtok(NULL,"|");
+                        packetKey = hasher(package);
+                        if (btree.search(packetKey) == NULL){
+                            send(sd, "FAIL\n", 5, 0);
+                        }
+                        else
                             send(sd, "OK\n", 3, 0);
+
                     }
+                    ////////////////////////////////////////////////////////
+                    //
+                    //
+                    // REMOVE
+                    //
+                    ////////////////////////////////////////////////////////
                     else if (std::regex_match (buffer,remove)){
                             send(sd, "OK\n", 3, 0);
                         }
