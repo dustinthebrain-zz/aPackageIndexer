@@ -1,6 +1,6 @@
 # aPackageIndexer
 
-##Concept:
+## Concept
 
 Use a binary tree container to hold "package nodes" 
 reason: fast searching
@@ -11,14 +11,14 @@ and dependencies store the name of the package that is dependent on it
 
 Package names are hashed into numbers "keys" and set as the key_vale of the "tree_node"
 
-###Indexing:
+### Indexing
 If there are dependencies they are indexed first before the package that is dependent on it is indexed 
 that package is called the "head package"
 
-###Query 
+### Query 
 Hash the package name and search the try with key
 
-###Removal
+### Removal
 Two variables assist with removal:
 
 ```
@@ -34,21 +34,21 @@ if it does it checks if is a dependency and
 	if it is, "REMOVE" checks if the package depending on it still exist
 otherwise the package can be removed 
 
-#INSTALL, RUN & TEST
+# INSTALL, RUN & TEST
 
-#Install 
+## Install 
 you will need: GCC env > 4.9d
 and the program is compiled with c++11
 
-##build
+## build
 `g++ -std=c++11 main.cpp package-Btree.cpp -o PTREE`
-##run
+## run
 `./PTREE`
-##interface
+## interface
 	telnet from as multiple terminals and send messages 
 `telnet 127.0.0.1 8080`
 
-##test
+## test
 _Here is a sample of the program working as I think it should_
 
 ```
