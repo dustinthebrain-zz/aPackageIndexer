@@ -51,6 +51,10 @@ and the program is compiled with c++11
 ## test
 _Here is a sample of the program working as I think it should_
 
+I’m not sure why the provided test is not able to see removal, it is possible I have misunderstood the instructions and am not sending the correct command, one thing that did not make sense was sending OK if a package was removed but was not found.
+
+The debug command did not provide me any extra info.
+
 ```
 root@compute-test:~# telnet 127.0.0.1 8080
 Trying 127.0.0.1...
