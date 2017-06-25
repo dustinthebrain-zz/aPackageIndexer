@@ -1,12 +1,17 @@
 # aPackageIndexer
 
+_about the code_ 
+- The b tree is code I wrote using what I learned from my CSci 235 class, slightly modified with some extra variables on the node as well as extra get functions.
+- Much of the Socket code is copied from bits and pieces I found online (because I had never tried to code anything like it before
+- The logic "Concept" is all mine from trial and error. I do believe the program is working as intended.
+
 ## Concept
 
 Use a binary tree container to hold "package nodes" 
 reason: fast searching
 
 Packages and dependencies are both considered "tree_nodes"
-the only difference is a dependency has a flag that indicates a package is dependent on it 
+the only difference is that a dependency has a flag which indicates a package is dependent on it, 
 and dependencies store the name of the package that is dependent on it
 
 Package names are hashed into numbers "keys" and set as the key_vale of the "tree_node"
@@ -37,7 +42,7 @@ otherwise the package can be removed
 # INSTALL, RUN & TEST
 
 ## Install 
-you will need: GCC env > 4.9d
+you will need: GCC env > 4.9
 and the program is compiled with c++11
 
 ## build
