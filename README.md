@@ -18,16 +18,74 @@ that package is called the "head package"
 ###Query 
 Hash the package name and search the try with key
 
-###Removal:
+###Removal
 Two variables assist with removal:
 
 ```
-"isDependent" tells us of the package is a dependency and 
+"isDependent" tells us if the package is a dependency and 
 "headPackage" tells us which package was dependent on it 
 ```
 
-This way a package need not keep track of all its dependencies instead
+This way a package need not keep track of all its dependencies, instead
+a dependency knows if a package is depending on it by a flag and what the name of the package is
+
 "REMOVE" checks if the packages still exist, 
 if it does it checks if is a dependency and 
-	if it is, "REMOVE" checks if dependent package still exist
+	if it is, "REMOVE" checks if the package depending on it still exist
 otherwise the package can be removed 
+
+#INSTALL, RUN & TEST
+
+#Install 
+you will need: GCC env > 4.9d
+and the program is compiled with c++11
+
+##build
+`g++ -std=c++11 main.cpp package-Btree.cpp -o PTREE`
+##run
+`./PTREE`
+##interface
+	telnet from as multiple terminals and send messages 
+`telnet 127.0.0.1 8080`
+
+##test
+_Here is a sample of the program working as I think it should_
+
+```
+root@compute-test:~# telnet 127.0.0.1 8080
+Trying 127.0.0.1...
+Connected to 127.0.0.1.
+Escape character is '^]'.
+INDEX|cloog|gmp,isl,pkg-config
+OK
+REMOVE|ceylon|
+OK
+REMOVE|gmp|
+FAIL
+REMOVE|cloog|
+OK
+QUERY|cloog|
+FAIL
+REMOVE|gmp|
+OK
+REMOVE|isl|
+OK
+REMOVE|pkg-config|
+OK
+QUERY|gmp|
+FAIL
+QUERY|isl|
+FAIL
+QUERY|pkg-config|
+FAIL
+QUERY|cloog|
+FAIL
+REMOVE|pkg-config|
+OK
+^]
+telnet> q
+Connection closed.
+root@compute-test:~# 
+```
+
+
