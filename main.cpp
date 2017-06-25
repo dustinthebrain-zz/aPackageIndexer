@@ -228,7 +228,6 @@ int main(int argc , char *argv[])
                         }
                         else
                             send(sd, "OK\n", 3, 0);
-
                     }
                     ////////////////////////////////////////////////////////
                     //
@@ -237,14 +236,30 @@ int main(int argc , char *argv[])
                     //
                     ////////////////////////////////////////////////////////
                     else if (std::regex_match (buffer,remove)){
+                        command = strtok(buffer,"|");
+                        package= strtok(NULL,"|");
+                        packetKey = hasher(package);
+                        commandPackage = btree.getHeadPack(packetKey);
+                        headPacketKey = hasher(commandPackage);
+                        
+                        //if the package exist and it is a dependency on some package
+                        //and that dependent package still exist
+                        if (btree.search(packetKey) == NULL &&
+                            btree.getDependencyFlag(packetKey)
+                            && btree.search(headPacketKey) != NULL){
+                            send(sd, "FAIL\n", 5, 0);
+                        }
+                        else{
+                            btree.remove(packetKey);
                             send(sd, "OK\n", 3, 0);
                         }
+                    }
+                    //INVALID command
                     else
                         send(sd, "ERROR\n", 6, 0);
                 }
             }
         }
     }
-    
     return 0;
 }
